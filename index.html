@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TG Cloud File Host</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background: #1e293b; border-radius: 16px; padding: 30px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        h1 { font-size: 22px; text-align: center; margin-bottom: 20px; color: #38bdf8; }
+        .upload-area { border: 2px dashed #38bdf8; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; background: #0f172a; }
+        .upload-area:hover { background: #1e293b; border-color: #818cf8; }
+        p { color: #94a3b8; font-size: 14px; margin-top: 10px; }
+        input[type="file"] { display: none; }
+        .btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; width: 100%; margin-top: 20px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #7dd3fc; }
+        .progress-bar { width: 100%; background: #334155; height: 10px; border-radius: 5px; margin-top: 15px; overflow: hidden; display: none; }
+        .progress { width: 0%; height: 100%; background: #38bdf8; transition: width 0.2s; }
+        .result { margin-top: 20px; word-break: break-all; background: #0f172a; padding: 15px; border-radius: 8px; display: none; border: 1px solid #334155; }
+        .result a { color: #38bdf8; font-size: 14px; text-decoration: none; word-break: break-all; }
+        .copy-btn { background: #334155; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>☁️ Free App & File Hosting</h1>
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <svg width="48" height="48" fill="none" stroke="#38bdf8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            <p id="fileName">অ্যাপ বা ফাইল সিলেক্ট করতে এখানে ক্লিক করুন</p>
+        </div>
+        <input type="file" id="fileInput" onchange="updateFileName()">
+        <button class="btn" onclick="uploadFile()">আপলোড করুন</button>
+        
+        <div class="progress-bar" id="progressBar"><div class="progress" id="progress"></div></div>
+        
+        <div class="result" id="result">
+            <p style="color:#4ade80; margin-bottom:8px;">✅ আপলোড সফল হয়েছে!</p>
+            <p style="color:#f8fafc; font-size:12px; margin-bottom:5px;">ডাইরেক্ট ডাউনলোড লিংক:</p>
+            <a id="downloadLink" href="#" target="_blank"></a><br>
+            <button class="copy-btn" onclick="copyLink()">লিংক কপি করুন</button>
+        </div>
+    </div>
+
+    <script>
+        function updateFileName() {
+            const file = document.getElementById('fileInput').files[0];
+            if(file) document.getElementById('fileName').innerText = file.name;
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files[0]) return alert('দয়া করে একটি ফাইল সিলেক্ট করুন!');
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    document.getElementById('progress').style.width = percent + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const res = JSON.parse(xhr.responseText);
+                    document.getElementById('downloadLink').href = res.download_url;
+                    document.getElementById('downloadLink').innerText = res.download_url;
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert('আপলোড ব্যর্থ হয়েছে! বটের পারমিশন এবং CHANNEL_ID চেক করুন।');
+                }
+                document.getElementById('progressBar').style.display = 'none';
+            };
+
+            xhr.send(formData);
+        }
+
+        function copyLink() {
+            const link = document.getElementById('downloadLink').href;
+            navigator.clipboard.writeText(link);
+            alert('ডাইরেক্ট ডাউনলোড লিংক কপি হয়েছে!');
+        }
+    </script>
+</body>
+</html>
