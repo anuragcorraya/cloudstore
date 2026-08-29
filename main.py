@@ -1,10 +1,12 @@
 import os
 import shutil
+import uvicorn
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.responses import StreamingResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pyrogram import Client
 
+# Telegram Credentials
 API_ID = int(os.getenv("API_ID", "32989580"))
 API_HASH = os.getenv("API_HASH", "484e782c53527de90df7edb86d3a6b2b")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8859619385:AAF-q17-PWBvr-3fLPdyGQnv6R4PPxk9fvk")
@@ -12,7 +14,7 @@ CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1004461200243"))
 
 bot = Client("tg_cloud_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-app = FastAPI()
+app = FastAPI(title="Telegram Cloud Storage")
 
 app.add_middleware(
     CORSMiddleware,
@@ -90,3 +92,7 @@ async def download_file(message_id: int, filename: str):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
